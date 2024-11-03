@@ -6,20 +6,15 @@
 pip install -r requirements.txt
 ```
 
-# Run the keylogger
+## Setup the executable
 
 ```
-python keylogger.py --log-file path/to/your/logfile.log
+python setup.py
 ```
 
-# Decrypt the Log File
+## Run the Executable
 
 ```
-python descrypypy --log-file path/to/your/logfile.log
-```
-
-# Pyinstaller
-
-```
-python -m PyInstaller --onefile --noconsole keylogger.py
+cd dist
+.\main.exe
 ```
