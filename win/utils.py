@@ -1,4 +1,8 @@
 from cryptography.fernet import Fernet
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 
 def generate_key():
     """
@@ -32,3 +36,27 @@ def decrypt_data(data, key):
     """
     fernet = Fernet(key)
     return fernet.decrypt(data).decode()
+
+def send_email(smtp_server, port, sender_email, sender_password, receiver_email, subject, body, attachments):
+    """
+    Send an email with the specified attachments.
+    """
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(body, 'plain'))
+
+    for attachment in attachments:
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload(open(attachment, "rb").read())
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', f'attachment; filename={os.path.basename(attachment)}')
+        msg.attach(part)
+
+    server = smtplib.SMTP(smtp_server, port)
+    server.starttls()
+    server.login(sender_email, sender_password)
+    server.sendmail(sender_email, receiver_email, msg.as_string())
+    server.quit()
