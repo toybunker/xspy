@@ -17,3 +17,9 @@ python keylogger.py --log-file path/to/your/logfile.log
 ```
 python descrypypy --log-file path/to/your/logfile.log
 ```
+
+# Pyinstaller
+
+```
+python -m PyInstaller --onefile --noconsole keylogger.py
+```
