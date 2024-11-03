@@ -6,36 +6,31 @@ from tkinter import messagebox
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-
 def save_file(constructor):
     match_line = "if __name__ == \"__main__\":"
     new_line = f"{match_line}\n{4 * ' '}Main{constructor}.start()"
 
-    i = 0
-    file = open("main.py", "r")
-    file_contents = file.readlines()
-    file.close()
+    with open("main.py", "r") as file:
+        file_contents = file.readlines()
 
-    for i in range(0, len(file_contents)):
-        if file_contents[i][0:len(match_line)] == match_line:
+    for i, line in enumerate(file_contents):
+        if line.startswith(match_line):
             break
 
     file_contents = file_contents[:i]
     file_contents.append(new_line)
 
-    file = open("main.py", "w")
-    file.writelines(file_contents)
-    file.close()
-
+    with open("main.py", "w") as file:
+        file.writelines(file_contents)
 
 def get_pyinstaller():
     user_path = site.getusersitepackages().split("\\")[:-1]
     user_path = "\\".join(user_path)
 
     for path in site.getsitepackages() + [site.getusersitepackages(), user_path]:
-        _path = f"{path}\\Scripts\\pyinstaller.exe"
+        _path = os.path.join(path, "Scripts", "pyinstaller.exe")
         if os.path.isfile(_path):
-            return "\"" + _path + "\""
+            return f"\"{_path}\""
 
     messagebox.showerror("Error", "Pyinstaller not found in any site packages.")
     sys.exit(0)
@@ -109,7 +104,6 @@ class Setup:
         messagebox.showinfo("Build", "Finished!")
 
         self.root.destroy()
-
 
 if __name__ == "__main__":
     Setup().create_ui("Setup", 200, 280)

