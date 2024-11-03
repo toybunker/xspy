@@ -136,4 +136,4 @@ class Setup:
         self.root.destroy()
 
 if __name__ == "__main__":
-    Setup().create_ui("Setup", 200, 280)
+    Setup().create_ui("Setup", 300, 350)

