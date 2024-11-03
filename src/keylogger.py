@@ -1,7 +1,6 @@
 import threading
 import pynput
 from datetime import datetime
-# from utils import encrypt_data, load_key
 
 KEY = pynput.keyboard.Key
 
